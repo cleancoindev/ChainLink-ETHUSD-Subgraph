@@ -1,0 +1,6 @@
+type ExampleEntity @entity {
+  id: ID!
+  count: BigInt!
+  response: BigInt! # int256
+  answerId: BigInt! # uint256
+}

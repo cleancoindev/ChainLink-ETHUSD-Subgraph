@@ -1,13 +1,13 @@
 {
-  "name": "Oracle-ChainLink-ETHUSD",
-  "license": "UNLICENSED",
+  "name": "Oraclechainlinkethusd",
+  "license": "MIT",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ crazyrabbitltc/Oracle-ChainLink-ETHUSD",
-    "create-local": "graph create --node http://localhost:8020/ crazyrabbitltc/Oracle-ChainLink-ETHUSD",
-    "remove-local": "graph remove --node http://localhost:8020/ crazyrabbitltc/Oracle-ChainLink-ETHUSD",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 crazyrabbitltc/Oracle-ChainLink-ETHUSD"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ crazyrabbitltc/Oraclechainlinkethusd",
+    "create-local": "graph create --node http://localhost:8020/ crazyrabbitltc/Oraclechainlinkethusd",
+    "remove-local": "graph remove --node http://localhost:8020/ crazyrabbitltc/Oraclechainlinkethusd",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 crazyrabbitltc/Oraclechainlinkethusd"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.18.0",

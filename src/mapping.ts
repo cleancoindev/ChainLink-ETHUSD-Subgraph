@@ -1,79 +1,57 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, ethereum, log, Address } from "@graphprotocol/graph-ts"
 import {
   Contract,
-  ResponseReceived,
-  OwnershipRenounced,
-  OwnershipTransferred,
-  ChainlinkRequested,
-  ChainlinkFulfilled,
-  ChainlinkCancelled,
-  AnswerUpdated,
-  NewRound
 } from "../generated/Contract/Contract"
-import { ExampleEntity } from "../generated/schema"
+import { History, Price } from "../generated/schema"
 
-export function handleResponseReceived(event: ResponseReceived): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+export function handleBlock(block: ethereum.Block): void {
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
+  let PAIR = "ETH/USD"
 
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+  //Create a new Price object, with the block number as ID.
+  let price = new Price(block.number.toString())
+
+  //Try to load the History object, but if not, then create it. 
+  let history = History.load(PAIR)
+  if(history == null){
+    history = new History(PAIR)
+    history.latestBlock = BigInt.fromI32(0)
+    history.lastPrice = BigInt.fromI32(0)
+    history.priceHistory = []
   }
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
+  //Create a new instance of Chainlink Contract
+  let oracle = Contract.bind(Address.fromString("0xF79D6aFBb6dA890132F9D7c355e3015f15F3406F"))
+  
 
-  // Entity fields can be set based on event parameters
-  entity.response = event.params.response
-  entity.answerId = event.params.answerId
+  //Call to get price information
+  let callResult = oracle.try_latestAnswer()
+  if(callResult.reverted){
+    log.warning("Get Latest price reverted at block: {}", [block.number.toString()])
+  }
 
-  // Entities can be written to the store with `.save()`
-  entity.save()
+  log.warning("The Price of ETH at Block: {} was: {}", [block.number.toString(),callResult.value.toString()])
 
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
+  //Add data onto Price
+  price.timestamp = block.timestamp
+  price.blockNumber = block.number
+  price.price = callResult.value
+  price.pair = PAIR
 
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.authorizedRequesters(...)
-  // - contract.jobIds(...)
-  // - contract.latestAnswer(...)
-  // - contract.minimumResponses(...)
-  // - contract.oracles(...)
-  // - contract.latestRound(...)
-  // - contract.latestTimestamp(...)
-  // - contract.owner(...)
-  // - contract.getAnswer(...)
-  // - contract.getTimestamp(...)
-  // - contract.paymentAmount(...)
+
+  //Update History
+  history.latestBlock = block.number
+  history.lastPrice = callResult.value
+  
+
+  //Add this price to this history array
+  let priceHistory = history.priceHistory
+  priceHistory.push(price.id)
+  history.priceHistory = priceHistory
+
+
+  //Save the Price
+  price.save()
+  //Save the History
+  history.save()
 }
-
-export function handleOwnershipRenounced(event: OwnershipRenounced): void {}
-
-export function handleOwnershipTransferred(event: OwnershipTransferred): void {}
-
-export function handleChainlinkRequested(event: ChainlinkRequested): void {}
-
-export function handleChainlinkFulfilled(event: ChainlinkFulfilled): void {}
-
-export function handleChainlinkCancelled(event: ChainlinkCancelled): void {}
-
-export function handleAnswerUpdated(event: AnswerUpdated): void {}
-
-export function handleNewRound(event: NewRound): void {}
